@@ -2,6 +2,7 @@ package com.devbooks.libraryapis.publisher;
 
 import com.devbooks.libraryapis.exception.LibraryResourceAlreadyExistsException;
 import com.devbooks.libraryapis.exception.LibraryResourceNotFoundException;
+import com.devbooks.libraryapis.utils.LibraryApiUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -63,5 +64,14 @@ public class PublisherController {
         }
 
         return new ResponseEntity<>("Publisher deleted", HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "/search")
+    public ResponseEntity<?> searchPublisher(@RequestParam String name) {
+        if(!LibraryApiUtils.doesStringValueExist(name)){
+            return new ResponseEntity<>("Please enter the name of the Publisher you wish to search.", HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(publisherService.searchPublisher(name), HttpStatus.OK);
     }
 }
