@@ -1,7 +1,15 @@
 package com.devbooks.libraryapis.exception;
 
 public class LibraryResourceNotFoundException extends Exception {
-    public LibraryResourceNotFoundException(String message) {
+
+    private String traceId;
+
+    public LibraryResourceNotFoundException(String traceId,String message) {
         super(message);
+        this.traceId = traceId;
+    }
+
+    public String getTraceId() {
+        return traceId;
     }
 }
