@@ -6,6 +6,7 @@ import com.devbooks.libraryapis.security.SecurityConstants;
 import com.devbooks.libraryapis.utils.LibraryApiUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -14,9 +15,11 @@ import java.util.Optional;
 public class UserService {
 
     private UserRepository userRepository;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     public void addUser(User userToBeAdded, String traceId)
@@ -24,7 +27,7 @@ public class UserService {
 
         UserEntity userEntity = new UserEntity(
                userToBeAdded.getUsername(),
-                SecurityConstants.NEW_USER_DEFAULT_PASSWORD,
+                bCryptPasswordEncoder.encode(SecurityConstants.NEW_USER_DEFAULT_PASSWORD),
                 userToBeAdded.getFirstName(),
                 userToBeAdded.getLastName(),
                 userToBeAdded.getDateOfBirth(),
@@ -94,9 +97,24 @@ public class UserService {
         }
     }
 
+    private User createUserFromEntity(UserEntity ue) {
+        return new User(ue.getUserId(), ue.getUsername(), ue.getFirstName(), ue.getLastName(),
+                ue.getDateOfBirth(), ue.getGender(), ue.getPhoneNumber(), ue.getEmailId(), Role.valueOf(ue.getRole()));
+    }
+
     private User createUserFromEntityForLogin(UserEntity ue) {
         return new User(ue.getUserId(), ue.getUsername(), ue.getPassword(), ue.getFirstName(), ue.getLastName(),
                 ue.getDateOfBirth(), ue.getGender(), ue.getPhoneNumber(), ue.getEmailId(), Role.valueOf(ue.getRole()));
     }
 
+    public User getUserByUsername(String username) throws LibraryResourceNotFoundException {
+
+        UserEntity userEntity = userRepository.findByUsername(username);
+
+        if(userEntity != null) {
+            return createUserFromEntityForLogin(userEntity);
+        } else {
+            throw new LibraryResourceNotFoundException(null, "Library username: " + username + " was not found.");
+        }
+    }
 }
